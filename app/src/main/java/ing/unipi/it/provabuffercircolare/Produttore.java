@@ -17,12 +17,12 @@ public class Produttore extends Thread {
     public void run() {
 
         super.run();
-        while (i<15) {
+        while (i<1000000000) {
 
             try {
                 buffer.inserisciDato(i);
                 Log.e("Produttore", "Inserito " + i);
-                Thread.sleep(1000);
+                //Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
