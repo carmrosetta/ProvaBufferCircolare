@@ -17,7 +17,7 @@ public class Produttore extends Thread {
     public void run() {
 
         super.run();
-        while (i<51) {
+        while (i<15) {
 
             try {
                 buffer.inserisciDato(i);

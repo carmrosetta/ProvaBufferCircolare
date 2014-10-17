@@ -15,8 +15,9 @@ public class BufferCircolare {
     private int numConsumatori;
     private int primoElemento[];//indice di ciascun consumatore
     private int ultimoElemento;
-    private int elementiInseriti[];//elementi letti da ciascun consumatore
-    int cont = 0;
+    private int elementiLetti[];//elementi letti da ciascun consumatore
+    private int cont = 0;
+
 
     private Lock lock = new ReentrantLock();
     private Condition non_pieno = lock.newCondition();
@@ -28,7 +29,7 @@ public class BufferCircolare {
         this.buffer = new int[numElementi];
         this.numConsumatori = numConsumatori;
         this.primoElemento = new int[numConsumatori];
-        this.elementiInseriti = new int[numConsumatori];
+        this.elementiLetti = new int[numConsumatori];
         this.non_vuoto = new Condition[numConsumatori];
 
 
@@ -54,7 +55,7 @@ public class BufferCircolare {
             cont ++;
             ultimoElemento = (ultimoElemento+1)%dimBuffer;
             for(int k = 0; k < numConsumatori; k++) {
-                elementiInseriti[k]++;
+                elementiLetti[k]++;
                 non_vuoto[k].signal();
             }
         } finally {
@@ -65,20 +66,30 @@ public class BufferCircolare {
 
 
     public int preleva (int indiceConsumatore) throws InterruptedException {
+
         int dato ;
+
         lock.lock();
+        boolean removeElement = true;
         try {
             while(cont == 0)
             non_vuoto[indiceConsumatore].await();
             dato = buffer[primoElemento[indiceConsumatore]];
             primoElemento[indiceConsumatore] = (primoElemento[indiceConsumatore]+1)%dimBuffer;
-            elementiInseriti[indiceConsumatore]--;
-            for(int i = 0; i < numConsumatori && i!= indiceConsumatore; i++) {
-                if(elementiInseriti[indiceConsumatore] >= elementiInseriti[i]) {
-                    cont --;
-                    non_pieno.signal();
+            elementiLetti[indiceConsumatore]--;
+            for(int i = 0; i < numConsumatori && removeElement; i++) {
+                if(elementiLetti[indiceConsumatore] < elementiLetti[i]) {
+                    removeElement = false;
+                  // cont --;
+                  // non_pieno.signal();
                 }
             }
+
+            if(removeElement) {
+                cont--;
+                non_pieno.signal();
+            }
+
 
 
         }finally {
